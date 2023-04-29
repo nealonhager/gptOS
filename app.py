@@ -20,7 +20,8 @@ def is_silent(data, threshold):
     """Returns True if the audio data is silent, False otherwise."""
     return np.abs(data).mean() < threshold
 
-def record_audio_until_silence(filename, threshold=500, silence_duration=2, frame_duration=0.1):
+
+def record_audio_until_silence(filename, threshold=300, silence_duration=2):
     CHUNK = 1024
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
@@ -33,8 +34,6 @@ def record_audio_until_silence(filename, threshold=500, silence_duration=2, fram
                     rate=RATE,
                     input=True,
                     frames_per_buffer=CHUNK)
-
-    print("Recording...")
 
     frames = []
     silence_start_time = None
@@ -51,8 +50,6 @@ def record_audio_until_silence(filename, threshold=500, silence_duration=2, fram
         else:
             silence_start_time = None
 
-    print("Finished recording")
-
     stream.stop_stream()
     stream.close()
     p.terminate()
@@ -66,9 +63,13 @@ def record_audio_until_silence(filename, threshold=500, silence_duration=2, fram
 
 
 def main():
+    print("Recording...")
     record_audio_until_silence("user_voice.wav")
+    print("Finished recording")
+
     audio_file= open("user_voice.wav", "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    print(transcript["text"])
 
     resp = Response(
         openai.ChatCompletion.create(
