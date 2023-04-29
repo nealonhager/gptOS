@@ -21,4 +21,4 @@ class Prompt(Message):
 
 class Response(Message):
     def __init__(self, content):
-        super().__init__(role="assistant", content=content, name="Amelia Isaacson")
+        super().__init__(role="assistant", content=content, name="AI")

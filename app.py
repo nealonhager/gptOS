@@ -96,10 +96,17 @@ def get_reply(convo: list):
 
 def main():
     convo = Conversation()
-    for _ in range(1):
+    convo.append(Prompt("If you respond with a line that starts with '$' then I will run the command on that line with windows powershell."))
+    for _ in range(2):
         query = record_user()
         convo.append(Prompt(query))
-        convo.append(get_reply(convo))
+
+        reply = get_reply(convo)
+        convo.append(reply)
+
+        if reply.content.startswith("$"):
+            os.system(reply.content[1:])
+
         print("")
     convo.export("convo.txt", human_readable=False)
     convo.export("convo_human.txt", human_readable=True)
