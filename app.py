@@ -62,25 +62,35 @@ def record_audio_until_silence(filename, threshold=300, silence_duration=2):
         wf.writeframes(b''.join(frames))
 
 
-def main():
+def record_user():
     print("Recording...")
     record_audio_until_silence("user_voice.wav")
     print("Finished recording")
 
     audio_file= open("user_voice.wav", "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
-    print(transcript["text"])
 
-    resp = Response(
+    print("USER:",transcript["text"])
+
+    return transcript["text"]
+
+
+def get_reply(query:str):
+    reply = Response(
         openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[Prompt(transcript["text"]).to_dict()],
+            messages=[Prompt(query).to_dict()],
         )["choices"][0]["message"]["content"]
     )
 
-    engine.say(resp.content)
+    engine.say(reply.content)
     engine.runAndWait()
     engine.stop()
+
+
+def main():
+    query = record_user()
+    get_reply(query)
 
 
 if __name__ == "__main__":
