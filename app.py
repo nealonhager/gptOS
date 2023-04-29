@@ -9,6 +9,7 @@ import wave
 
 from message import Message, Prompt, Response
 from dotenv import load_dotenv
+from conversation import Conversation
 
 load_dotenv()
 engine = pyttsx3.init()
@@ -63,34 +64,45 @@ def record_audio_until_silence(filename, threshold=300, silence_duration=2):
 
 
 def record_user():
-    print("Recording...")
+    print("Recording...", end="")
     record_audio_until_silence("user_voice.wav")
-    print("Finished recording")
+    print("Finished.")
 
     audio_file= open("user_voice.wav", "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
 
-    print("USER:",transcript["text"])
+    print("USER:\n\t",transcript["text"])
 
     return transcript["text"]
 
 
-def get_reply(query:str):
+def get_reply(convo: list):
+    formatted_convo = [x.to_dict() for x in convo.history]
+
     reply = Response(
         openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[Prompt(query).to_dict()],
+            messages=formatted_convo,
         )["choices"][0]["message"]["content"]
     )
 
+    print(f"{str.upper(reply.role)}:\n\t",reply.content)
     engine.say(reply.content)
     engine.runAndWait()
     engine.stop()
 
+    return reply
+
 
 def main():
-    query = record_user()
-    get_reply(query)
+    convo = Conversation()
+    for _ in range(1):
+        query = record_user()
+        convo.append(Prompt(query))
+        convo.append(get_reply(convo))
+        print("")
+    convo.export("convo.txt", human_readable=False)
+    convo.export("convo_human.txt", human_readable=True)
 
 
 if __name__ == "__main__":
